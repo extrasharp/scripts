@@ -68,7 +68,6 @@ fn main() {
         Err(err) => match err {
             TruncateError::EnvHomeNotFound => {
                 println!("env var: $HOME not found - ");
-                usage();
                 print_path("---");
             }
         }
