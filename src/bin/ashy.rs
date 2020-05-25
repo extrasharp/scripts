@@ -7,6 +7,10 @@ fn print_table(columns: usize) {
     let rows_raw = range.len() as f32 / columns as f32;
     let rows = rows_raw.round() as usize;
 
+    // column that contains 100
+    // rounds down, which is good
+    let col_100 = (100 - 32) / rows;
+
     for i in 0..rows {
         for j in 0..columns {
             let byte = (i + j * rows + 32) as u8;
@@ -17,18 +21,14 @@ fn print_table(columns: usize) {
                 break;
             }
 
-            let num_fill =
-                // last number of this row
-               if 32 + (j + 1) * rows - 1 >= 100 {
-                   3
-               } else {
-                   2
-               };
-
             print!("'{0}' {1:2$} 0x{1:2x}",
                    byte as char,
                    byte,
-                   num_fill,);
+                   if j < col_100 {
+                       2
+                   } else {
+                       3
+                   },);
             if j != columns - 1 {
                 print!(" | ");
             }
