@@ -1,47 +1,50 @@
 use std::env;
-use std::path::{Path, PathBuf};
+use std::io;
+use std::io::{Write};
+use std::path::{Path, PathBuf, Component};
 
-// todo clean up
+fn print_path(p: &str) {
+    print!("{}/", p);
+    io::stdout().flush().unwrap();
+}
 
 fn main() {
     let trunc = 2;
 
     let pwd = env::current_dir().unwrap();
-    let home =
-        if let Ok(path) = env::var("HOME") {
-            PathBuf::from(path)
-        } else {
-            print!("env vae: $HOME not found - ");
-            return;
-        };
-
-    if pwd == home {
-        print!("~/");
+    if pwd == Path::new("/") {
+        print_path("");
         return;
     }
 
+    let home =
+        if let Ok(home_str) = env::var("HOME") {
+            PathBuf::from(home_str)
+        } else {
+            print!("env var: $HOME not found - ");
+            return;
+        };
+
     let path =
-        if pwd.starts_with(&home) {
-            Path::new("~").join(pwd.strip_prefix(&home).unwrap())
+        if pwd == home {
+            print_path("~");
+            return;
+        } else if pwd.starts_with(&home) {
+            Path::new("~").join(pwd.strip_prefix(home).unwrap())
         } else {
             pwd
         };
 
     let path_len = path.iter().count();
+    let mut components = path.components();
+
     let trunced: PathBuf =
-        if path_len > trunc {
-            let mut iter = path.iter().peekable();
-            let trunc =
-                if *iter.peek().unwrap() == std::ffi::OsStr::new("/") {
-                    trunc + 1
-                } else {
-                    trunc
-                };
-            path.iter().skip(path_len - trunc).collect()
-        } else {
+        if (path_len <= trunc + 1 && components.next().unwrap() == Component::RootDir)
+           || path_len <= trunc {
             path
+        } else {
+            path.iter().skip(path_len - trunc).collect()
         };
 
-    print!("{}/", trunced.to_str().unwrap());
-    // io::stdout.flush()
+    print_path(trunced.to_str().unwrap());
 }
